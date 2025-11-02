@@ -1,0 +1,43 @@
+name: Deploy Frontend ClinicaAlma
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Vue.js project
+        run: |
+          npm install
+          npm run build
+
+      - name: Build Docker image
+        run: |
+          TAG=$(date +%Y%m%d%H%M%S)
+          docker build -t ${{ secrets.DOCKER_USER }}/clinicaalma-frontend:$TAG .
+          docker tag ${{ secrets.DOCKER_USER }}/clinicaalma-frontend:$TAG ${{ secrets.DOCKER_USER }}/clinicaalma-frontend:latest
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Push Docker image
+        run: |
+          echo "${{ secrets.DOCKER_PASS }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+          docker push ${{ secrets.DOCKER_USER }}/clinicaalma-frontend:$TAG
+          docker push ${{ secrets.DOCKER_USER }}/clinicaalma-frontend:latest
+
+      - name: SSH to VPS and deploy to Kubernetes
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            sed -i "s|image:.*|image: ${{ secrets.DOCKER_USER }}/clinicaalma-frontend:${TAG}|g" /root/k8s/frontend/deployment.yaml
+            cd /root/k8s/frontend
+            ./deploy-frontend.sh
