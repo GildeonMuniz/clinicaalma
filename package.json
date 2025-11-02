@@ -1,0 +1,24 @@
+{
+  "name": "clinica-alma",
+  "version": "2.0.0",
+  "description": "Sistema de Gestão para Clínica de Terapias Espirituais - Frontend Vue.js",
+  "private": true,
+  "scripts": {
+    "dev": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "preview": "cd client && npm run preview"
+  },
+  "keywords": [
+    "clinic",
+    "therapy",
+    "apometria",
+    "magnetismo",
+    "vue",
+    "frontend"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

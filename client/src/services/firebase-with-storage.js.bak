@@ -1,0 +1,202 @@
+/**
+ * Firebase Configuration and Service
+ * Handles Firestore database and Storage for offline-first functionality
+ */
+
+import { initializeApp } from 'firebase/app'
+import { getFirestore, enableIndexedDbPersistence, collection, addDoc, getDocs, getDoc, query, where, updateDoc, doc } from 'firebase/firestore'
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+
+// Firebase configuration - IMPORTANTE: Substitua com suas credenciais do Firebase Console
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "CONFIGURE_NO_.ENV",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "clinica-alma.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "clinica-alma",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "clinica-alma.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || ""
+}
+
+// Initialize Firebase
+let app = null
+let db = null
+let storage = null
+
+try {
+  app = initializeApp(firebaseConfig)
+  db = getFirestore(app)
+  storage = getStorage(app)
+
+  // Enable offline persistence
+  enableIndexedDbPersistence(db)
+    .then(() => {
+      console.log('✅ Firebase offline persistence enabled')
+    })
+    .catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.warn('⚠️ Multiple tabs open, persistence can only be enabled in one tab at a time.')
+      } else if (err.code === 'unimplemented') {
+        console.warn('⚠️ The current browser does not support offline persistence')
+      }
+    })
+} catch (error) {
+  console.error('❌ Firebase initialization error:', error)
+}
+
+// Collection references
+const COLLECTIONS = {
+  PACIENTES: 'pacientes',
+  FICHAS: 'fichas_atendimento',
+  SYNC_QUEUE: 'sync_queue'
+}
+
+/**
+ * Firebase Service
+ */
+export const firebaseService = {
+  // Check if Firebase is properly configured
+  isConfigured() {
+    return firebaseConfig.apiKey !== "CONFIGURE_NO_.ENV" && db !== null
+  },
+
+  // Pacientes
+  async savePaciente(pacienteData) {
+    if (!this.isConfigured()) throw new Error('Firebase not configured')
+
+    const docRef = await addDoc(collection(db, COLLECTIONS.PACIENTES), {
+      ...pacienteData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      synced_to_server: false
+    })
+    return { id: docRef.id, ...pacienteData }
+  },
+
+  async getPacientes() {
+    if (!this.isConfigured()) throw new Error('Firebase not configured')
+
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.PACIENTES))
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  },
+
+  async getPacienteByCodigo(codigo) {
+    if (!this.isConfigured()) throw new Error('Firebase not configured')
+
+    const q = query(
+      collection(db, COLLECTIONS.PACIENTES),
+      where('codigo_consulente', '==', codigo)
+    )
+    const querySnapshot = await getDocs(q)
+
+    if (querySnapshot.empty) return null
+
+    const doc = querySnapshot.docs[0]
+    return { id: doc.id, ...doc.data() }
+  },
+
+  // Fichas
+  async saveFicha(fichaData) {
+    if (!this.isConfigured()) throw new Error('Firebase not configured')
+
+    const docRef = await addDoc(collection(db, COLLECTIONS.FICHAS), {
+      ...fichaData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      synced_to_server: false
+    })
+    return { id: docRef.id, ...fichaData }
+  },
+
+  async getFichas(pacienteId) {
+    if (!this.isConfigured()) throw new Error('Firebase not configured')
+
+    const q = query(
+      collection(db, COLLECTIONS.FICHAS),
+      where('paciente_id', '==', pacienteId)
+    )
+    const querySnapshot = await getDocs(q)
+
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  },
+
+  // Storage - Upload de imagens
+  async uploadImage(file, path) {
+    if (!this.isConfigured()) throw new Error('Firebase not configured')
+
+    const timestamp = Date.now()
+    const filename = `${timestamp}_${file.name}`
+    const storageRef = ref(storage, `${path}/${filename}`)
+
+    const snapshot = await uploadBytes(storageRef, file)
+    const downloadURL = await getDownloadURL(snapshot.ref)
+
+    return {
+      url: downloadURL,
+      path: snapshot.ref.fullPath,
+      filename
+    }
+  },
+
+  // Sync Queue - Para sincronizar quando voltar online
+  async addToSyncQueue(action, data) {
+    if (!this.isConfigured()) return null
+
+    const docRef = await addDoc(collection(db, COLLECTIONS.SYNC_QUEUE), {
+      action, // 'create_paciente', 'create_ficha', 'upload_image'
+      data,
+      status: 'pending', // pending, syncing, synced, error
+      created_at: new Date().toISOString(),
+      retry_count: 0,
+      last_error: null
+    })
+    return docRef.id
+  },
+
+  async getPendingSyncItems() {
+    if (!this.isConfigured()) return []
+
+    const q = query(
+      collection(db, COLLECTIONS.SYNC_QUEUE),
+      where('status', '==', 'pending')
+    )
+    const querySnapshot = await getDocs(q)
+
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  },
+
+  async updateSyncItemStatus(id, status, error = null) {
+    if (!this.isConfigured()) return
+
+    const docRef = doc(db, COLLECTIONS.SYNC_QUEUE, id)
+    await updateDoc(docRef, {
+      status,
+      updated_at: new Date().toISOString(),
+      last_error: error
+    })
+  },
+
+  async incrementSyncRetry(id) {
+    if (!this.isConfigured()) return
+
+    const docRef = doc(db, COLLECTIONS.SYNC_QUEUE, id)
+    const currentDoc = await getDoc(docRef)
+    const retryCount = (currentDoc.data().retry_count || 0) + 1
+
+    await updateDoc(docRef, {
+      retry_count: retryCount,
+      updated_at: new Date().toISOString()
+    })
+  }
+}
+
+export { db, storage, COLLECTIONS }
+export default firebaseService

@@ -1,0 +1,67 @@
+✅ Dados capturados da FRENTE: {
+[0]   "codigo_consulente": "12",
+[0]   "nome": "DANIEL BORDIN SCHUMACHER",
+[0]   "idade": 49,
+[0]   "endereco": "DERLI PRADO FERREIRA, 391 B3 201",
+[0]   "bairro": "SAO JOAO",
+[0]   "cidade": "VOTORANTIM",
+[0]   "estado": "SP",
+[0]   "cep": "18125-760",
+[0]   "telefone_fixo": null,
+[0]   "celular": "11 992947334",
+[0]   "email": "DSCHUMACHER1935@HOTMAIL.COM",
+[0]   "data_cadastro": "28/09/23",
+[0]   "passes_humano_espirituais": [
+[0]     "15/10",
+[0]     "19/10",
+[0]     "22/10"
+[0]   ],
+[0]   "passes_magneticos": [
+[0]     "19/10",
+[0]     "25/10"
+[0]   ],
+[0]   "sessoes": [
+[0]     {
+[0]       "tipo": "P1",
+[0]       "datas": [
+[0]         "15/10",
+[0]         "19/10",
+[0]         "22/10",
+[0]         "29/10",
+[0]         "5/11"
+[0]       ]
+[0]     },
+[0]     {
+[0]       "tipo": "Long",
+[0]       "datas": [
+[0]         "19/10",
+[0]         "25/10"
+[0]       ]
+[0]     }
+[0]   ],
+[0]   "bioenergia": true,
+[0]   "apometria": {
+[0]     "realizar": true,
+[0]     "tipo": "Convencional",
+[0]     "urgente": false
+[0]   },
+[0]   "evocacao": {
+[0]     "emocional": false,
+[0]     "espiritual": false,
+[0]     "fisica": false
+[0]   },
+[0]   "campo_protecao": {
+[0]     "casa": true,
+[0]     "consciente": false,
+[0]     "casa_consulente": true
+[0]   },
+[0]   "exclusivo_tratamento_medico": {
+[0]     "procedimentos_especiais": false,
+[0]     "limpeza_energetica": false,
+[0]     "limpeza_energetica_campo_protecao": false,
+[0]     "ectoplasma": false
+[0]   },
+[0]   "indicacoes_especificas": "ATENÇÃO AOS CHAKRAS FRONTAL, CARDÍACO E BÁSICO. NÃO FALTAR",
+[0]   "responsavel_preenchimento": "DANIEL",
+[0]   "responsavel_orientacao": "PAI JOAO"
+[0] }
