@@ -17,7 +17,7 @@ jobs:
         run: |
           cd client
           npm ci
-          
+
       - name: Build Vue.js project
         run: |
           npm install
@@ -43,6 +43,10 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            sed -i "s|image:.*|image: ${{ secrets.DOCKER_USER }}/clinicaalma-frontend:${TAG}|g" /root/k8s/frontend/deployment.yaml
+            sed -i "s|image: .*|image: ${DOCKER_USER}/clinicaalma-frontend:${TAG}|g" /root/k8s/frontend/deployment.yaml
             cd /root/k8s/frontend
             ./deploy-frontend.sh
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          TAG: ${{ env.TAG }}
+
