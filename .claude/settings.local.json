@@ -13,7 +13,8 @@
       "Bash(fi)",
       "Bash(if [ -d \"uploads\" ])",
       "Bash(then mv uploads uploads-backup-nodejs)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
