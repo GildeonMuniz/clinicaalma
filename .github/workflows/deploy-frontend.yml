@@ -20,7 +20,7 @@ jobs:
 
       - name: Build Vue.js project
         run: |
-          npm install
+          cd client
           npm run build
 
       - name: Build Docker image
@@ -36,17 +36,14 @@ jobs:
           docker push ${{ secrets.DOCKER_USER }}/clinicaalma-frontend:$TAG
           docker push ${{ secrets.DOCKER_USER }}/clinicaalma-frontend:latest
 
-      - name: SSH to VPS and deploy to Kubernetes
+      - name: Deploy to Kubernetes via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            sed -i "s|image: .*|image: ${DOCKER_USER}/clinicaalma-frontend:${TAG}|g" /root/k8s/frontend/deployment.yaml
+            export TAG=${{ env.TAG }}
             cd /root/k8s/frontend
             ./deploy-frontend.sh
-        env:
-          DOCKER_USER: ${{ secrets.DOCKER_USER }}
-          TAG: ${{ env.TAG }}
 
