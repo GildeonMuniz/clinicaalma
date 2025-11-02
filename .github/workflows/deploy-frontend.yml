@@ -47,3 +47,4 @@ jobs:
             cd /root/k8s/frontend
             ./deploy-frontend.sh
 
+
