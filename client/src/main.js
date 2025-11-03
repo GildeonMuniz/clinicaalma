@@ -5,24 +5,20 @@ import Home from './views/Home.vue'
 import Pacientes from './views/Pacientes.vue'
 import NovaFicha from './views/NovaFicha.vue'
 import DetalhePaciente from './views/DetalhePaciente.vue'
+import { registerSW } from 'virtual:pwa-register'
 
-// Registro do Service Worker (PWA)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('Service Worker registrado com sucesso:', registration.scope)
-
-        // Verificar atualizações periodicamente
-        setInterval(() => {
-          registration.update()
-        }, 60000) // A cada 1 minuto
-      })
-      .catch(error => {
-        console.error('Erro ao registrar Service Worker:', error)
-      })
-  })
-}
+// Registro do Service Worker com vite-plugin-pwa
+const updateSW = registerSW({
+  onNeedRefresh() {
+    if (confirm('Nova versão disponível. Atualizar agora?')) {
+      updateSW(true)
+    }
+  },
+  onOfflineReady() {
+    console.log('App pronto para funcionar offline!')
+  },
+  immediate: true
+})
 
 const router = createRouter({
   history: createWebHistory(),

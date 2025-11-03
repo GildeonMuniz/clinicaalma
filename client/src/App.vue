@@ -3,6 +3,9 @@
     <!-- Sync Status Indicator -->
     <SyncStatus />
 
+    <!-- PWA Install Prompt -->
+    <InstallPWA />
+
     <nav class="navbar">
       <div class="container">
         <h1 class="logo">Clínica Alma</h1>
@@ -26,11 +29,13 @@
 
 <script>
 import SyncStatus from './components/SyncStatus.vue'
+import InstallPWA from './components/InstallPWA.vue'
 
 export default {
   name: 'App',
   components: {
-    SyncStatus
+    SyncStatus,
+    InstallPWA
   }
 }
 </script>
