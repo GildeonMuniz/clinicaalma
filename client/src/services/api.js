@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Configuração da API base URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.muniz.vps-kinghost.net'
 
 // Criar instância do axios com configuração padrão
 const api = axios.create({
@@ -122,6 +122,46 @@ export const ocrAPI = {
 export const healthAPI = {
   // Verificar saúde da API
   check: () => api.get('/health')
+}
+
+export const authAPI = {
+  // Login - Endpoint real
+  login: (credentials) => api.post('/api/Auth/login', credentials),
+
+  // Logout - TODO: Substituir por endpoint real quando disponível
+  logout: () => {
+    // Mock - apenas retorna sucesso
+    return Promise.resolve({ data: { success: true } })
+    // return api.post('/api/auth/logout')
+  },
+
+  // Verificar autenticação - TODO: Substituir por endpoint real quando disponível
+  verify: () => {
+    // Mock - verifica apenas se tem token no localStorage
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      return Promise.resolve({ data: { valid: true } })
+    }
+    return Promise.reject({ response: { status: 401 } })
+    // return api.get('/api/auth/verify')
+  }
+}
+
+export const usuariosAPI = {
+  // Listar todos os usuários
+  listar: () => api.get('/api/Usuarios'),
+
+  // Buscar usuário por ID
+  buscarPorId: (id) => api.get(`/api/Usuarios/${id}`),
+
+  // Criar novo usuário
+  criar: (dados) => api.post('/api/Usuarios', dados),
+
+  // Atualizar usuário
+  atualizar: (id, dados) => api.put(`/api/Usuarios/${id}`, dados),
+
+  // Deletar usuário
+  deletar: (id) => api.delete(`/api/Usuarios/${id}`)
 }
 
 // Exportar a instância do axios configurada
