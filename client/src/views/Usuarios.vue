@@ -98,6 +98,21 @@
           </div>
 
           <div class="form-group">
+            <label for="senha">Senha *</label>
+            <input
+              id="senha"
+              v-model="formulario.senha"
+              type="password"
+              class="form-control"
+              :required="!modoEdicao"
+              placeholder="Deixe em branco para manter a senha atual"
+            />
+            <small v-if="modoEdicao" style="color: #666; font-size: 0.85rem;">
+              Deixe em branco para não alterar a senha
+            </small>
+          </div>
+
+          <div class="form-group">
             <label for="perfilAcessoId">Perfil de Acesso *</label>
             <select
               id="perfilAcessoId"
@@ -172,6 +187,7 @@ export default {
         nome: '',
         nomeDoUsuario: '',
         email: '',
+        senha: '',
         bloqueado: false,
         perfilAcessoId: '',
         situacao: 1,
@@ -224,6 +240,7 @@ export default {
         nome: '',
         nomeDoUsuario: '',
         email: '',
+        senha: '',
         bloqueado: false,
         perfilAcessoId: '',
         situacao: 1,
@@ -238,11 +255,19 @@ export default {
       this.errorModal = null
 
       try {
-        // Converter para números
+        // Preparar dados conforme API espera
         const dados = {
-          ...this.formulario,
+          nome: this.formulario.nome,
+          nomeDoUsuario: this.formulario.nomeDoUsuario,
+          email: this.formulario.email,
+          senha: this.formulario.senha,
           perfilAcessoId: parseInt(this.formulario.perfilAcessoId),
           situacao: parseInt(this.formulario.situacao)
+        }
+
+        // Se estiver editando e senha estiver vazia, remover do objeto
+        if (this.modoEdicao && !dados.senha) {
+          delete dados.senha
         }
 
         if (this.modoEdicao) {

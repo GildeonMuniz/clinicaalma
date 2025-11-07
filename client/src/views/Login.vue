@@ -71,20 +71,28 @@ export default {
       this.error = null
 
       try {
-        // TODO: Substituir por endpoint real quando disponível
         const response = await authAPI.login(this.credentials)
 
-        // Salvar token no localStorage
-        if (response.data.token) {
-          localStorage.setItem('auth_token', response.data.token)
-          localStorage.setItem('user', JSON.stringify(response.data.user))
-        }
+        // Log para debug - ver estrutura da resposta
+        console.log('Resposta do login:', response.data)
 
-        // Redirecionar para home
-        this.$router.push('/')
+        // Salvar token no localStorage (tentar diferentes possíveis campos)
+        const token = response.data.token || response.data.accessToken || response.data.access_token
+        const user = response.data.user || response.data.usuario || response.data
+
+        if (token) {
+          localStorage.setItem('auth_token', token)
+          localStorage.setItem('user', JSON.stringify(user))
+
+          // Redirecionar para home
+          this.$router.push('/')
+        } else {
+          throw new Error('Token não encontrado na resposta')
+        }
 
       } catch (error) {
         console.error('Erro no login:', error)
+        console.error('Resposta completa:', error.response)
 
         if (error.response?.status === 401) {
           this.error = 'Usuário ou senha inválidos'

@@ -12,9 +12,16 @@ const api = axios.create({
   }
 })
 
-// Interceptor para logging (opcional - remover em produção se necessário)
+// Interceptor para adicionar token de autenticação
 api.interceptors.request.use(
   config => {
+    // Adicionar token de autenticação se existir
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    // Log da requisição
     const fullUrl = `${config.baseURL}${config.url}`
     console.log(`🌐 API Request: ${config.method.toUpperCase()} ${fullUrl}`)
     return config
